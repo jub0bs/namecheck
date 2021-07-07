@@ -13,10 +13,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>...")
 		os.Exit(1)
 	}
-	var valid []string
-	var invalid []string
+	var (
+		tw      twitter.Twitter
+		gh      github.GitHub
+		valid   []string
+		invalid []string
+	)
 	for _, username := range os.Args[1:] {
-		if twitter.IsValid(username) && github.IsValid(username) {
+		if tw.IsValid(username) && gh.IsValid(username) {
 			valid = append(valid, username)
 		} else {
 			invalid = append(invalid, username)

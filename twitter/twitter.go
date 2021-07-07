@@ -17,6 +17,6 @@ func looksGood(username string) bool {
 	return re.MatchString(username)
 }
 
-func IsValid(username string) bool {
+func (*Twitter) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
 }

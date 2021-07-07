@@ -7,45 +7,50 @@ import (
 )
 
 func TestUsernameTooLong(t *testing.T) {
+	var tw twitter.Twitter
 	username := "obviously_longer_than_15_chars"
 	want := false
-	got := twitter.IsValid(username)
+	got := tw.IsValid(username)
 	if got != want {
 		t.Errorf("twitter.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameTooShort(t *testing.T) {
+	var tw twitter.Twitter
 	username := "foo"
 	want := false
-	got := twitter.IsValid(username)
+	got := tw.IsValid(username)
 	if got != want {
 		t.Errorf("twitter.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameContainsTwitter(t *testing.T) {
+	var tw twitter.Twitter
 	username := "jub0bsOnTwitter"
 	want := false
-	got := twitter.IsValid(username)
+	got := tw.IsValid(username)
 	if got != want {
 		t.Errorf("twitter.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameContainsIllegalChars(t *testing.T) {
+	var tw twitter.Twitter
 	username := "-jub-0bs-"
 	want := false
-	got := twitter.IsValid(username)
+	got := tw.IsValid(username)
 	if got != want {
 		t.Errorf("twitter.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameIsValid(t *testing.T) {
+	var tw twitter.Twitter
 	username := "jub0bs"
 	want := true
-	got := twitter.IsValid(username)
+	got := tw.IsValid(username)
 	if got != want {
 		t.Errorf("twitter.IsValid(%q): got %t; want %t", username, got, want)
 	}

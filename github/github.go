@@ -20,11 +20,11 @@ func looksGood(username string) bool {
 	return re.MatchString(username)
 }
 
-func IsValid(username string) bool {
+func (*GitHub) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
 }
 
-func IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	endpoint := "https://github.com/%s" + username
 	resp, err := http.Get(endpoint)
 	if err != nil {

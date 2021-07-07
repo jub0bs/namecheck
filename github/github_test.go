@@ -7,45 +7,50 @@ import (
 )
 
 func TestUsernameTooLong(t *testing.T) {
+	var gh github.GitHub
 	username := "obviously_longer_than_39_chars_haaaaaaaaaaaaaaaaaaaaaaaaa"
 	want := false
-	got := github.IsValid(username)
+	got := gh.IsValid(username)
 	if got != want {
 		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameTooShort(t *testing.T) {
+	var gh github.GitHub
 	username := "vi"
 	want := false
-	got := github.IsValid(username)
+	got := gh.IsValid(username)
 	if got != want {
 		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameContainsIllegalChars(t *testing.T) {
+	var gh github.GitHub
 	username := "_jub0bs_"
 	want := false
-	got := github.IsValid(username)
+	got := gh.IsValid(username)
 	if got != want {
 		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameContainsIllegalPattern(t *testing.T) {
+	var gh github.GitHub
 	username := "-jub0--bs-"
 	want := false
-	got := github.IsValid(username)
+	got := gh.IsValid(username)
 	if got != want {
 		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
 	}
 }
 
 func TestUsernameIsValid(t *testing.T) {
+	var gh github.GitHub
 	username := "jub0bs"
 	want := true
-	got := github.IsValid(username)
+	got := gh.IsValid(username)
 	if got != want {
 		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
 	}
