@@ -19,7 +19,11 @@ func main() {
 		tw twitter.Twitter
 		gh github.GitHub
 	)
-	checkers := []namecheck.Checker{&tw, &gh}
+	// let's pretend that we support many platforms
+	var checkers []namecheck.Checker
+	for i := 0; i < 50; i++ {
+		checkers = append(checkers, &tw, &gh)
+	}
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
 		var (
@@ -38,16 +42,4 @@ func main() {
 			err,
 		)
 	}
-
-	valid = gh.IsValid(username)
-	if valid {
-		avail, err = gh.IsAvailable(username)
-	}
-	fmt.Printf(
-		"[%q on %s] valid: %t; available: %t; error: %v\n",
-		username,
-		"GitHub", valid,
-		avail,
-		err,
-	)
 }
