@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+type Twitter struct{}
+
 var re = regexp.MustCompile("^[0-9A-Z_a-z]{4,15}$")
 
 func containsNoIllegalPattern(username string) bool {
