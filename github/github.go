@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/jub0bs/namecheck"
 )
 
 type GitHub struct{}
@@ -24,12 +26,21 @@ func (*GitHub) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
 }
 
-func (*GitHub) IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	endpoint := "https://github.com/" + username
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		return false, err
+		err1 := namecheck.ErrUnknownAvailability{
+			Username: username,
+			Platform: gh.String(),
+			Cause:    err,
+		}
+		return false, &err1
 	}
 	defer resp.Body.Close()
 	return resp.StatusCode == http.StatusNotFound, nil
+}
+
+func (*GitHub) String() string {
+	return "GitHub"
 }

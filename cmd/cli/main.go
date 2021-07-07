@@ -18,11 +18,13 @@ func main() {
 		tw twitter.Twitter
 		gh github.GitHub
 	)
+	fmt.Println(&tw, &gh)
 	var (
 		valid bool
 		avail bool
 		err   error
 	)
+
 	valid = tw.IsValid(username)
 	if valid {
 		avail, err = tw.IsAvailable(username)

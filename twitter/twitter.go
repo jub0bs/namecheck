@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/jub0bs/namecheck"
 )
 
 type Twitter struct{}
@@ -24,11 +26,16 @@ func (*Twitter) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
 }
 
-func (*Twitter) IsAvailable(username string) (bool, error) {
+func (tw *Twitter) IsAvailable(username string) (bool, error) {
 	endpoint := "https://europe-west6-namechecker-api.cloudfunctions.net/userlookup?username=" + username
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		return false, err
+		err1 := namecheck.ErrUnknownAvailability{
+			Username: username,
+			Platform: tw.String(),
+			Cause:    err,
+		}
+		return false, &err1
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
@@ -43,4 +50,8 @@ func (*Twitter) IsAvailable(username string) (bool, error) {
 	}
 	// the absence of a data field in the response body indicates the username's availability
 	return dto.Data == nil, nil
+}
+
+func (*Twitter) String() string {
+	return "Twitter"
 }
