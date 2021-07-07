@@ -1,6 +1,9 @@
 package twitter
 
 import (
+	"encoding/json"
+	"errors"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -19,4 +22,25 @@ func looksGood(username string) bool {
 
 func (*Twitter) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
+}
+
+func (*Twitter) IsAvailable(username string) (bool, error) {
+	endpoint := "https://europe-west6-namechecker-api.cloudfunctions.net/userlookup?username=" + username
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return false, errors.New("unexpected response from API")
+	}
+	var dto struct {
+		Data interface{} `json:"data"`
+	}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&dto); err != nil {
+		return false, err
+	}
+	// the absence of a data field in the response body indicates the username's availability
+	return dto.Data == nil, nil
 }

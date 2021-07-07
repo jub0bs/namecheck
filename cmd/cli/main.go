@@ -13,19 +13,36 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>...")
 		os.Exit(1)
 	}
+	username := os.Args[1]
 	var (
-		tw      twitter.Twitter
-		gh      github.GitHub
-		valid   []string
-		invalid []string
+		tw twitter.Twitter
+		gh github.GitHub
 	)
-	for _, username := range os.Args[1:] {
-		if tw.IsValid(username) && gh.IsValid(username) {
-			valid = append(valid, username)
-		} else {
-			invalid = append(invalid, username)
-		}
+	var (
+		valid bool
+		avail bool
+		err   error
+	)
+	valid = tw.IsValid(username)
+	if valid {
+		avail, err = tw.IsAvailable(username)
 	}
-	fmt.Println("usernames valid on both Twitter and GitHub:", valid)
-	fmt.Println("usernames invalid on either Twitter or GitHub:", invalid)
+	fmt.Printf(
+		"[%q on %s] valid: %t; available: %t; error: %v\n",
+		username,
+		"Twitter", valid,
+		avail,
+		err,
+	)
+	valid = gh.IsValid(username)
+	if valid {
+		avail, err = gh.IsAvailable(username)
+	}
+	fmt.Printf(
+		"[%q on %s] valid: %t; available: %t; error: %v\n",
+		username,
+		"GitHub", valid,
+		avail,
+		err,
+	)
 }

@@ -24,8 +24,8 @@ func (*GitHub) IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
 }
 
-func (gh *GitHub) IsAvailable(username string) (bool, error) {
-	endpoint := "https://github.com/%s" + username
+func (*GitHub) IsAvailable(username string) (bool, error) {
+	endpoint := "https://github.com/" + username
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return false, err
