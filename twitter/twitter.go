@@ -39,14 +39,24 @@ func (tw *Twitter) IsAvailable(username string) (bool, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return false, errors.New("unexpected response from API")
+		err1 := namecheck.ErrUnknownAvailability{
+			Username: username,
+			Platform: tw.String(),
+			Cause:    errors.New("unexpected response from API"),
+		}
+		return false, &err1
 	}
 	var dto struct {
 		Data interface{} `json:"data"`
 	}
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&dto); err != nil {
-		return false, err
+		err1 := namecheck.ErrUnknownAvailability{
+			Username: username,
+			Platform: tw.String(),
+			Cause:    err,
+		}
+		return false, &err1
 	}
 	// the absence of a data field in the response body indicates the username's availability
 	return dto.Data == nil, nil
