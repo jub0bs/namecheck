@@ -1,6 +1,7 @@
 package github
 
 import (
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -21,4 +22,14 @@ func looksGood(username string) bool {
 
 func IsValid(username string) bool {
 	return looksGood(username) && containsNoIllegalPattern(username)
+}
+
+func IsAvailable(username string) (bool, error) {
+	endpoint := "https://github.com/%s" + username
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode == http.StatusNotFound, nil
 }
