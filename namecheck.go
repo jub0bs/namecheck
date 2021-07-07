@@ -2,6 +2,20 @@ package namecheck
 
 import "fmt"
 
+type Validator interface {
+	IsValid(username string) bool
+}
+
+type Availabler interface {
+	IsAvailable(username string) (bool, error)
+}
+
+type Checker interface {
+	Validator
+	Availabler
+	fmt.Stringer
+}
+
 type ErrUnknownAvailability struct {
 	Username string
 	Platform string
