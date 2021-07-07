@@ -10,7 +10,9 @@ import (
 	"github.com/jub0bs/namecheck"
 )
 
-type Twitter struct{}
+type Twitter struct {
+	Client namecheck.Client
+}
 
 var re = regexp.MustCompile("^[0-9A-Z_a-z]{4,15}$")
 
@@ -28,7 +30,7 @@ func (*Twitter) IsValid(username string) bool {
 
 func (tw *Twitter) IsAvailable(username string) (bool, error) {
 	endpoint := "https://europe-west6-namechecker-api.cloudfunctions.net/userlookup?username=" + username
-	resp, err := http.Get(endpoint)
+	resp, err := tw.Client.Get(endpoint)
 	if err != nil {
 		err1 := namecheck.ErrUnknownAvailability{
 			Username: username,

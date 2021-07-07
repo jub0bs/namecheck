@@ -8,7 +8,9 @@ import (
 	"github.com/jub0bs/namecheck"
 )
 
-type GitHub struct{}
+type GitHub struct {
+	Client namecheck.Client
+}
 
 var re = regexp.MustCompile("^[-0-9A-Za-z]{3,39}$")
 
@@ -28,7 +30,7 @@ func (*GitHub) IsValid(username string) bool {
 
 func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	endpoint := "https://github.com/" + username
-	resp, err := http.Get(endpoint)
+	resp, err := http.DefaultClient.Get(endpoint)
 	if err != nil {
 		err1 := namecheck.ErrUnknownAvailability{
 			Username: username,

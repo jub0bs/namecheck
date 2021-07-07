@@ -1,6 +1,13 @@
 package namecheck
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
+
+type Client interface {
+	Get(url string) (resp *http.Response, err error)
+}
 
 type Validator interface {
 	IsValid(username string) bool

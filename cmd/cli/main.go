@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/jub0bs/namecheck"
@@ -15,10 +16,12 @@ func main() {
 		os.Exit(1)
 	}
 	username := os.Args[1]
-	var (
-		tw twitter.Twitter
-		gh github.GitHub
-	)
+	tw := twitter.Twitter{
+		Client: http.DefaultClient,
+	}
+	gh := github.GitHub{
+		Client: http.DefaultClient,
+	}
 	// let's pretend that we support many platforms
 	var checkers []namecheck.Checker
 	for i := 0; i < 50; i++ {
