@@ -17,7 +17,6 @@ type Result struct {
 	Platform  string
 	Valid     bool
 	Available bool
-	Err       error
 }
 
 func main() {
