@@ -30,7 +30,7 @@ func (*GitHub) IsValid(username string) bool {
 
 func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	endpoint := "https://github.com/" + username
-	resp, err := http.DefaultClient.Get(endpoint)
+	resp, err := gh.Client.Get(endpoint)
 	if err != nil {
 		err1 := namecheck.ErrUnknownAvailability{
 			Username: username,
