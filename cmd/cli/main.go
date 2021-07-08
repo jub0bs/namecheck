@@ -38,10 +38,11 @@ func main() {
 	}
 
 	ch := make(chan Result, len(checkers))
+	errc := make(chan error)
 	var wg sync.WaitGroup
 	wg.Add(len(checkers))
 	for _, checker := range checkers {
-		go check(checker, username, &wg, ch)
+		go check(checker, username, &wg, ch, errc)
 	}
 
 	go func() {
@@ -50,11 +51,24 @@ func main() {
 	}()
 
 	results := make([]Result, 0, len(checkers))
-	for res := range ch {
-		results = append(results, res)
+	var done bool
+	for !done {
+		select {
+		case res, ok := <-ch:
+			if !ok {
+				done = true
+				continue
+			}
+			results = append(results, res)
+		case err := <-errc:
+			fmt.Fprintln(os.Stderr, err)
+			return
+		}
 	}
 
 	fmt.Println(results)
+
+	// ....
 }
 
 func check(
@@ -62,6 +76,7 @@ func check(
 	username string,
 	wg *sync.WaitGroup,
 	ch chan<- Result,
+	errc chan<- error,
 ) {
 	defer wg.Done()
 	res := Result{
@@ -69,8 +84,15 @@ func check(
 		Platform: checker.String(),
 	}
 	res.Valid = checker.IsValid(username)
-	if res.Valid {
-		res.Available, res.Err = checker.IsAvailable(username)
+	if !res.Valid {
+		ch <- res
+		return
 	}
+	avail, err := checker.IsAvailable(username)
+	if err != nil {
+		errc <- err
+		return
+	}
+	res.Available = avail
 	ch <- res
 }
