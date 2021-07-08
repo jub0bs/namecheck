@@ -37,7 +37,7 @@ func main() {
 		checkers = append(checkers, &tw, &gh)
 	}
 
-	ch := make(chan Result)
+	ch := make(chan Result, len(checkers))
 	var wg sync.WaitGroup
 	wg.Add(len(checkers))
 	for _, checker := range checkers {
@@ -61,7 +61,7 @@ func check(
 	checker namecheck.Checker,
 	username string,
 	wg *sync.WaitGroup,
-	ch chan Result,
+	ch chan<- Result,
 ) {
 	defer wg.Done()
 	res := Result{
