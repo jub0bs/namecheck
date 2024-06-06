@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
+var re = regexp.MustCompile("^[a-zA-Z0-9-]{3,39}$")
+
 func main() {
-	username := "jub0bs"
-	if !IsValid(username) {
-		return
-	}
-	fmt.Println(username)
+	fmt.Println(IsValid("jub0bs"))
+	fmt.Println(IsValid("jub  0bs"))
+	fmt.Println(IsValid("jub___0bs"))
 }
 
 func IsValid(username string) bool {
@@ -20,8 +20,5 @@ func IsValid(username string) bool {
 		strings.Contains(username, "--") {
 		return false
 	}
-	if valid, _ := regexp.MatchString("^[a-zA-Z0-9-]{3,39}$", username); !valid {
-		return false
-	}
-	return true
+	return re.MatchString(username)
 }
