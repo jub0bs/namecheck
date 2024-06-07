@@ -9,7 +9,11 @@ import (
 )
 
 func main() {
-	const username = "jub0bs"
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
+		os.Exit(1)
+	}
+	username := os.Args[1]
 	if !github.IsValid(username) {
 		fmt.Printf("%q is not valid on GitHub\n", username)
 	} else {
