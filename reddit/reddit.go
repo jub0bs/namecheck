@@ -1,9 +1,11 @@
 package reddit
 
-import "net/http"
+import (
+	"github.com/jub0bs/namecheck"
+)
 
 type Reddit struct {
-	Client *http.Client
+	Client namecheck.Getter
 }
 
 func (*Reddit) IsValid(username string) bool {
