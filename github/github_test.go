@@ -1,10 +1,12 @@
 package github_test
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/jub0bs/namecheck/github"
+	"github.com/jub0bs/namecheck/stub"
 )
 
 func TestIsValid(t *testing.T) {
@@ -29,5 +31,17 @@ func TestIsValid(t *testing.T) {
 			}
 		}
 		t.Run(desc, f)
+	}
+}
+
+func TestIsAvailableNotFound(t *testing.T) {
+	gh := github.GitHub{
+		Client: &stub.SuccessfulGetter{StatusCode: http.StatusNotFound},
+	}
+	const username = "whatever"
+	avail, err := gh.IsAvailable(username)
+	if err != nil || !avail {
+		const tmpl = "IsAvailable(%q): got %t, %v; want true, nil"
+		t.Errorf(tmpl, username, avail, err)
 	}
 }
