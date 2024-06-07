@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/jub0bs/namecheck/github"
@@ -14,11 +15,14 @@ func main() {
 		os.Exit(1)
 	}
 	username := os.Args[1]
-	if !github.IsValid(username) {
+	gh := github.GitHub{
+		Client: http.DefaultClient,
+	}
+	if !gh.IsValid(username) {
 		fmt.Printf("%q is not valid on GitHub\n", username)
 	} else {
 		fmt.Printf("%q is valid on GitHub\n", username)
-		avail, err := github.IsAvailable(username)
+		avail, err := gh.IsAvailable(username)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "unknown availibility of %q on GitHub", username)
 			return
@@ -29,12 +33,14 @@ func main() {
 			fmt.Printf("%q is available on GitHub\n", username)
 		}
 	}
-
-	if !reddit.IsValid(username) {
+	re := reddit.Reddit{
+		Client: http.DefaultClient,
+	}
+	if !re.IsValid(username) {
 		fmt.Printf("%q is not valid on Reddit\n", username)
 	} else {
 		fmt.Printf("%q is valid on Reddit\n", username)
-		avail, err := reddit.IsAvailable(username)
+		avail, err := re.IsAvailable(username)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "unknown availibility of %q on Reddit", username)
 			return

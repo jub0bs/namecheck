@@ -1,9 +1,15 @@
 package reddit
 
-func IsValid(username string) bool {
+import "net/http"
+
+type Reddit struct {
+	Client *http.Client
+}
+
+func (*Reddit) IsValid(username string) bool {
 	return false
 }
 
-func IsAvailable(username string) (bool, error) {
+func (*Reddit) IsAvailable(username string) (bool, error) {
 	return false, nil
 }
