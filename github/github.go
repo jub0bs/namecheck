@@ -39,3 +39,7 @@ func (gh *GitHub) IsAvailable(username string) (bool, error) {
 		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 }
+
+func (*GitHub) String() string {
+	return "GitHub"
+}
