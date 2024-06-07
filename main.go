@@ -9,6 +9,19 @@ import (
 	"github.com/jub0bs/namecheck/reddit"
 )
 
+type Validator interface {
+	IsValid(string) bool
+}
+
+type Availabler interface {
+	IsAvailable(string) (bool, error)
+}
+
+type Checker interface {
+	Validator
+	Availabler
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
