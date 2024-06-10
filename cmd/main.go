@@ -35,7 +35,10 @@ func main() {
 	re := reddit.Reddit{
 		Client: http.DefaultClient,
 	}
-	checkers := []Checker{&gh, &re}
+	var checkers []Checker
+	for range 20 {
+		checkers = append(checkers, &gh, &re)
+	}
 	for _, checker := range checkers {
 		if !checker.IsValid(username) {
 			continue
