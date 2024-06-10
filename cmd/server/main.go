@@ -1,27 +1,36 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
 
+	"github.com/jub0bs/cors"
 	"github.com/jub0bs/namecheck"
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
 )
 
 type Result struct {
-	Username  string
-	Platform  string
-	Valid     bool
-	Available bool
-	Err       error
+	Username  string `json:"user_name"`
+	Platform  string `json:"platform"`
+	Valid     bool   `json:"valid"`
+	Available bool   `json:"available"`
+	Err       error  `json:"error"`
 }
 
 func main() {
-	http.HandleFunc("GET /check", handleCheck)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /check", handleCheck)
+	corsMw, err := cors.NewMiddleware(cors.Config{
+		Origins: []string{"*"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	handler := corsMw.Wrap(mux)
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
 func handleCheck(w http.ResponseWriter, req *http.Request) {
@@ -54,7 +63,11 @@ func handleCheck(w http.ResponseWriter, req *http.Request) {
 	for res := range resultCh {
 		results = append(results, res)
 	}
-	fmt.Fprint(w, results)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(results); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func check(
