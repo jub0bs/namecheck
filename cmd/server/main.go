@@ -21,7 +21,10 @@ type Result struct {
 	Available bool   `json:"available"`
 }
 
-var m = make(map[string]uint)
+var (
+	m  = make(map[string]uint)
+	mu sync.Mutex
+)
 
 func main() {
 	mux := http.NewServeMux()
@@ -38,7 +41,9 @@ func main() {
 }
 
 func handleStats(w http.ResponseWriter, _ *http.Request) {
+	mu.Lock()
 	fmt.Fprint(w, m)
+	mu.Unlock()
 }
 
 func handleCheck(w http.ResponseWriter, req *http.Request) {
@@ -47,7 +52,9 @@ func handleCheck(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
 	m[username]++
+	mu.Unlock()
 	gh := github.GitHub{
 		Client: http.DefaultClient,
 	}
