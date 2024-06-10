@@ -6,23 +6,10 @@ import (
 	"os"
 	"sync"
 
+	"github.com/jub0bs/namecheck"
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
 )
-
-type Validator interface {
-	IsValid(string) bool
-}
-
-type Availabler interface {
-	IsAvailable(string) (bool, error)
-}
-
-type Checker interface {
-	Validator
-	Availabler
-	fmt.Stringer
-}
 
 type Result struct {
 	Username  string
@@ -44,7 +31,7 @@ func main() {
 	re := reddit.Reddit{
 		Client: http.DefaultClient,
 	}
-	var checkers []Checker
+	var checkers []namecheck.Checker
 	for range 20 {
 		checkers = append(checkers, &gh, &re)
 	}
@@ -66,7 +53,7 @@ func main() {
 }
 
 func check(
-	checker Checker,
+	checker namecheck.Checker,
 	username string,
 	wg *sync.WaitGroup,
 	resultCh chan<- Result,
