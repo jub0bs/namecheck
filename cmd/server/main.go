@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -20,9 +21,12 @@ type Result struct {
 	Available bool   `json:"available"`
 }
 
+var m = make(map[string]uint)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
+	mux.HandleFunc("GET /stats", handleStats)
 	corsMw, err := cors.NewMiddleware(cors.Config{
 		Origins: []string{"*"},
 	})
@@ -33,12 +37,17 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
+func handleStats(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprint(w, m)
+}
+
 func handleCheck(w http.ResponseWriter, req *http.Request) {
 	username := req.URL.Query().Get("username")
 	if username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	m[username]++
 	gh := github.GitHub{
 		Client: http.DefaultClient,
 	}
