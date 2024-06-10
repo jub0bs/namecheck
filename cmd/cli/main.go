@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
@@ -39,14 +40,22 @@ func main() {
 	for range 20 {
 		checkers = append(checkers, &gh, &re)
 	}
+	var wg sync.WaitGroup
 	for _, checker := range checkers {
-		if !checker.IsValid(username) {
-			continue
-		}
-		avail, err := checker.IsAvailable(username)
-		if err != nil || !avail {
-			continue
-		}
-		fmt.Printf("%q is valid and available on %s\n", username, checker)
+		wg.Add(1)
+		go check(checker, username, &wg)
 	}
+	wg.Wait()
+}
+
+func check(checker Checker, username string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	if !checker.IsValid(username) {
+		return
+	}
+	avail, err := checker.IsAvailable(username)
+	if err != nil || !avail {
+		return
+	}
+	fmt.Printf("%q is valid and available on %s\n", username, checker)
 }
