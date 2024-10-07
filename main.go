@@ -7,14 +7,18 @@ import (
 )
 
 func main() {
-	const username = "jub0bs"
+	fmt.Println(IsValid("jub0bs")) // true
+	fmt.Println(IsValid("-_-"))    // false
+}
+
+func IsValid(username string) bool {
 	if strings.HasPrefix(username, "-") ||
 		strings.HasSuffix(username, "-") ||
 		strings.Contains(username, "--") {
-		return
+		return false
 	}
 	if ok, _ := regexp.MatchString("^[a-zA-Z0-9-]{3,39}$", username); !ok {
-		return
+		return false
 	}
-	fmt.Println(username)
+	return true
 }
