@@ -1,9 +1,11 @@
 package reddit
 
-func IsValid(username string) bool {
+type Reddit struct{}
+
+func (*Reddit) IsValid(username string) bool {
 	return false
 }
 
-func IsAvailable(username string) (bool, error) {
+func (*Reddit) IsAvailable(username string) (bool, error) {
 	return false, nil
 }

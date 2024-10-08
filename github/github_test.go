@@ -1,6 +1,7 @@
 package github_test
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -20,9 +21,12 @@ func TestIsValid(t *testing.T) {
 		"all good":                         {"jub0bs", true},
 		// other test cases...
 	}
+	gh := github.GitHub{
+		Client: http.DefaultClient,
+	}
 	for desc, tc := range testCases {
 		f := func(t *testing.T) {
-			got := github.IsValid(tc.username)
+			got := gh.IsValid(tc.username)
 			if got != tc.want {
 				t.Errorf("github.IsValid(%q): got %t; want %t", tc.username, got, tc.want)
 			}
