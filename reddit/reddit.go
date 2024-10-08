@@ -9,3 +9,7 @@ func (*Reddit) IsValid(username string) bool {
 func (*Reddit) IsAvailable(username string) (bool, error) {
 	return false, nil
 }
+
+func (*Reddit) String() string {
+	return "Reddit"
+}
