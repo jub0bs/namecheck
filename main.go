@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
 )
 
 func main() {
-	username := "jub0bs"
+	if len(os.Args) != 2 {
+		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
+		os.Exit(1)
+	}
+	username := os.Args[1]
 	valid := github.IsValid(username)
 	fmt.Printf("%q is valid on GitHub: %t\n", username, valid)
 	if valid {
