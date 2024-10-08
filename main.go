@@ -9,6 +9,19 @@ import (
 	"github.com/jub0bs/namecheck/reddit"
 )
 
+type Validator interface {
+	IsValid(string) bool
+}
+
+type Availabler interface {
+	IsAvailable(string) (bool, error)
+}
+
+type Checker interface {
+	Validator
+	Availabler
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
@@ -18,25 +31,18 @@ func main() {
 	gh := github.GitHub{
 		Client: http.DefaultClient,
 	}
-	valid := gh.IsValid(username)
-	fmt.Printf("%q is valid on GitHub: %t\n", username, valid)
-	if valid {
-		avail, err := gh.IsAvailable(username)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("%q is available on GitHub: %t\n", username, avail)
-		}
-	}
 	var re reddit.Reddit
-	valid = re.IsValid(username)
-	fmt.Printf("%q is valid on Reddit: %t\n", username, valid)
-	if valid {
-		avail, err := re.IsAvailable(username)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("%q is available on Reddit: %t\n", username, avail)
+	checkers := []Checker{&gh, &re}
+	for _, checker := range checkers {
+		valid := checker.IsValid(username)
+		fmt.Printf("%q is valid on ???: %t\n", username, valid)
+		if valid {
+			avail, err := checker.IsAvailable(username)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Printf("%q is available on ???: %t\n", username, avail)
+			}
 		}
 	}
 }
