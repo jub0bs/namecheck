@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
@@ -33,22 +34,29 @@ func main() {
 		Client: http.DefaultClient,
 	}
 	var re reddit.Reddit
-	const n = 20
+	const n = 40
 	checkers := make([]Checker, 0, 2*n)
 	for range n {
 		checkers = append(checkers, &gh, &re)
 	}
-	fmt.Println(checkers)
+	var wg sync.WaitGroup
 	for _, checker := range checkers {
-		valid := checker.IsValid(username)
-		fmt.Printf("%q is valid on %s: %t\n", username, checker, valid)
-		if valid {
-			avail, err := checker.IsAvailable(username)
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Printf("%q is available on %s: %t\n", username, checker, avail)
-			}
+		wg.Add(1)
+		go check(checker, username, &wg)
+	}
+	wg.Wait()
+}
+
+func check(checker Checker, username string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	valid := checker.IsValid(username)
+	fmt.Printf("%q is valid on %s: %t\n", username, checker, valid)
+	if valid {
+		avail, err := checker.IsAvailable(username)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("%q is available on %s: %t\n", username, checker, avail)
 		}
 	}
 }
