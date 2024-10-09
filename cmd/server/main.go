@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/jub0bs/cors"
 	"github.com/jub0bs/namecheck"
 	"github.com/jub0bs/namecheck/github"
 	"github.com/jub0bs/namecheck/reddit"
@@ -20,8 +21,24 @@ type Result struct {
 }
 
 func main() {
-	http.HandleFunc("GET /check", handleCheck)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /check", handleCheck)
+
+	// instantiate a CORS middleware whose config suits your needs
+	corsMw, err := cors.NewMiddleware(cors.Config{
+		Origins: []string{"*"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// apply the CORS middleware
+	handler := corsMw.Wrap(mux)
+
+	// start the server on port 8080; make sure to pass your custom handler
+	if err := http.ListenAndServe(":8080", handler); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
