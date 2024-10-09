@@ -33,7 +33,12 @@ func main() {
 		Client: http.DefaultClient,
 	}
 	var re reddit.Reddit
-	checkers := []Checker{&gh, &re}
+	const n = 20
+	checkers := make([]Checker, 0, 2*n)
+	for range n {
+		checkers = append(checkers, &gh, &re)
+	}
+	fmt.Println(checkers)
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
 		fmt.Printf("%q is valid on %s: %t\n", username, checker, valid)
