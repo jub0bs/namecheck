@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -12,11 +12,11 @@ import (
 )
 
 type Result struct {
-	Username  string
-	Platform  string
-	Valid     bool
-	Available bool
-	Err       error
+	Username  string `json:"username"`
+	Platform  string `json:"platform"`
+	Valid     bool   `json:"valid"`
+	Available bool   `json:"available"`
+	Err       error  `json:"error"`
 }
 
 func main() {
@@ -53,7 +53,12 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	for res := range resultCh {
 		results = append(results, res)
 	}
-	fmt.Fprint(w, results)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(results); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func check(
