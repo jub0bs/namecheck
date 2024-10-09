@@ -24,6 +24,14 @@ type Checker interface {
 	fmt.Stringer
 }
 
+type Result struct {
+	Username  string
+	Platform  string
+	Valid     bool
+	Available bool
+	Err       error
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
@@ -39,24 +47,34 @@ func main() {
 	for range n {
 		checkers = append(checkers, &gh, &re)
 	}
+	resultCh := make(chan Result)
 	var wg sync.WaitGroup
 	for _, checker := range checkers {
 		wg.Add(1)
-		go check(checker, username, &wg)
+		go check(checker, username, &wg, resultCh)
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+	var results []Result
+	for res := range resultCh {
+		results = append(results, res)
+	}
+	fmt.Println(results)
 }
 
-func check(checker Checker, username string, wg *sync.WaitGroup) {
+func check(checker Checker, username string, wg *sync.WaitGroup, resultCh chan Result) {
 	defer wg.Done()
-	valid := checker.IsValid(username)
-	fmt.Printf("%q is valid on %s: %t\n", username, checker, valid)
-	if valid {
-		avail, err := checker.IsAvailable(username)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("%q is available on %s: %t\n", username, checker, avail)
-		}
+	res := Result{
+		Username: username,
+		Platform: checker.String(),
+		Valid:    checker.IsValid(username),
 	}
+	if !res.Valid {
+		resultCh <- res
+		return
+	}
+	res.Available, res.Err = checker.IsAvailable(username)
+	resultCh <- res
 }
