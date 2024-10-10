@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -55,12 +56,14 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	for range n {
 		checkers = append(checkers, &gh, &re)
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	resultCh := make(chan Result)
 	errCh := make(chan error)
 	var wg sync.WaitGroup
 	for _, checker := range checkers {
 		wg.Add(1)
-		go check(checker, username, &wg, resultCh, errCh)
+		go check(ctx, checker, username, &wg, resultCh, errCh)
 	}
 	go func() {
 		wg.Wait()
@@ -71,6 +74,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	for !finished {
 		select {
 		case <-errCh:
+			cancel()
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		case res, ok := <-resultCh:
@@ -90,6 +94,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func check(
+	ctx context.Context,
 	checker namecheck.Checker,
 	username string,
 	wg *sync.WaitGroup,
@@ -103,14 +108,23 @@ func check(
 		Valid:    checker.IsValid(username),
 	}
 	if !res.Valid {
-		resultCh <- res
+		select {
+		case <-ctx.Done():
+		case resultCh <- res:
+		}
 		return
 	}
 	avail, err := checker.IsAvailable(username)
 	if err != nil {
-		errCh <- err
+		select {
+		case <-ctx.Done():
+		case errCh <- err:
+		}
 		return
 	}
 	res.Available = avail
-	resultCh <- res
+	select {
+	case <-ctx.Done():
+	case resultCh <- res:
+	}
 }
