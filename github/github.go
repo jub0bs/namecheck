@@ -1,6 +1,8 @@
 package github
 
 import (
+	"errors"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -12,4 +14,20 @@ func IsValid(username string) bool {
 		!strings.HasPrefix(username, "-") &&
 		!strings.HasSuffix(username, "-") &&
 		re.MatchString(username)
+}
+
+func IsAvailable(username string) (bool, error) {
+	res, err := http.Get("https://github.com/" + username)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case http.StatusNotFound:
+		return true, nil
+	case http.StatusOK:
+		return false, nil
+	default:
+		return false, errors.New("github: unexpected status")
+	}
 }
