@@ -35,3 +35,7 @@ func (gh *GitHub) IsAvailable(username string) (bool, error) {
 		return false, errors.New("github: unexpected status")
 	}
 }
+
+func (*GitHub) String() string {
+	return "GitHub"
+}
