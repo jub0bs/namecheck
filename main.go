@@ -9,7 +9,11 @@ import (
 )
 
 func main() {
-	username := "jub0bs"
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s <username>\n", os.Args[0])
+		os.Exit(1)
+	}
+	username := os.Args[1]
 	valid := github.IsValid(username)
 	fmt.Printf("validity of %q GitHub: %t\n", username, valid)
 	if valid {
