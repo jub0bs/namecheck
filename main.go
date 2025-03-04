@@ -9,6 +9,11 @@ import (
 	"github.com/jub0bs/namecheck/github"
 )
 
+type Checker interface {
+	IsValid(string) bool
+	IsAvailable(string) (bool, error)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "usage: %s <username>\n", os.Args[0])
@@ -18,25 +23,19 @@ func main() {
 	gh := github.GitHub{
 		Client: http.DefaultClient,
 	}
-	valid := gh.IsValid(username)
-	fmt.Printf("validity of %q GitHub: %t\n", username, valid)
-	if valid {
-		avail, err := gh.IsAvailable(username)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		} else {
-			fmt.Printf("available of %q GitHub: %t\n", username, avail)
-		}
-	}
 	var bs bluesky.Bluesky
-	valid = bs.IsValid(username)
-	fmt.Printf("validity of %q Bluesky: %t\n", username, valid)
-	if valid {
-		avail, err := bs.IsAvailable(username)
+	checkers := []Checker{&gh, &bs}
+	for _, checker := range checkers {
+		valid := checker.IsValid(username)
+		fmt.Printf("validity of %q %T: %t\n", username, checker, valid)
+		if !valid {
+			continue
+		}
+		avail, err := checker.IsAvailable(username)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-		} else {
-			fmt.Printf("available of %q Bluesky: %t\n", username, avail)
+			continue
 		}
+		fmt.Printf("available of %q %T: %t\n", username, checker, avail)
 	}
 }
