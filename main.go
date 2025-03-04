@@ -27,7 +27,7 @@ func main() {
 	checkers := []Checker{&gh, &bs}
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
-		fmt.Printf("validity of %q %T: %t\n", username, checker, valid)
+		fmt.Printf("validity of %q on %s: %t\n", username, checker, valid)
 		if !valid {
 			continue
 		}
@@ -36,6 +36,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		fmt.Printf("available of %q %T: %t\n", username, checker, avail)
+		fmt.Printf("available of %q on %s: %t\n", username, checker, avail)
 	}
 }
