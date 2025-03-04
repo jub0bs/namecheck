@@ -7,65 +7,28 @@ import (
 	"github.com/jub0bs/namecheck/github"
 )
 
-func TestUsernameContainsTwoConsecutiveHyphens(t *testing.T) {
-	const username = "jub0bs--on-GitHub"
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
+func TestIsValid(t *testing.T) {
+	type TestCase struct {
+		desc     string
+		username string
+		want     bool
 	}
-}
-
-func TestUsernameStartsWithAHyphen(t *testing.T) {
-	const username = "-jub0bs-on-GitHub"
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
+	testCases := []TestCase{
+		{"contains two consecutive hyphens", "jub0bs--on-GitHub", false},
+		{"starts with hyphen", "-jub0bs-on-GitHub", false},
+		{"ends with hyphen", "jub0bs-on-GitHub-", false},
+		{"too short", "ab", false},
+		{"too long", strings.Repeat("a", 40), false},
+		{"invalid chars", "ju^b0bs", false},
+		{"all good", "jub0bs", true},
 	}
-}
-
-func TestUsernameEndsWithAHyphen(t *testing.T) {
-	const username = "jub0bs-on-GitHub-"
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
-	}
-}
-
-func TestUsernameTooShort(t *testing.T) {
-	const username = "ab"
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
-	}
-}
-
-func TestUsernameTooLong(t *testing.T) {
-	username := strings.Repeat("a", 40)
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
-	}
-}
-
-func TestUsernameContainsInvalidChars(t *testing.T) {
-	const username = "ju^b0bs"
-	const want = false
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
-	}
-}
-
-func TestUsernameAllGood(t *testing.T) {
-	const username = "jub0bs"
-	const want = true
-	got := github.IsValid(username)
-	if got != want {
-		t.Errorf("github.IsValid(%q): got %t; want %t", username, got, want)
+	for _, tc := range testCases {
+		f := func(t *testing.T) {
+			got := github.IsValid(tc.username)
+			if got != tc.want {
+				t.Errorf("github.IsValid(%q): got %t; want %t", tc.username, got, tc.want)
+			}
+		}
+		t.Run(tc.desc, f)
 	}
 }
