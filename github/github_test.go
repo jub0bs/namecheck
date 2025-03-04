@@ -1,6 +1,7 @@
 package github_test
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -31,5 +32,41 @@ func TestIsValid(t *testing.T) {
 			}
 		}
 		t.Run(tc.desc, f)
+	}
+}
+
+type StubClient struct {
+	StatusCode int
+	Err        error
+}
+
+func (c *StubClient) Get(url string) (*http.Response, error) {
+	if c.Err != nil {
+		return nil, c.Err
+	}
+	resp := http.Response{
+		StatusCode: c.StatusCode,
+		Body:       http.NoBody,
+	}
+	return &resp, nil
+}
+
+func TestIsAvailable404(t *testing.T) {
+	gh := github.GitHub{
+		Client: &StubClient{StatusCode: http.StatusNotFound},
+	}
+	avail, err := gh.IsAvailable("whatever")
+	if !(err == nil && avail) {
+		t.Errorf("sdfsdf")
+	}
+}
+
+func TestIsAvailable200(t *testing.T) {
+	gh := github.GitHub{
+		Client: &StubClient{StatusCode: http.StatusOK},
+	}
+	avail, err := gh.IsAvailable("whatever")
+	if !(err == nil && !avail) {
+		t.Errorf("sdfsdf")
 	}
 }
