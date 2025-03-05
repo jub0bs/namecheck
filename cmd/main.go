@@ -50,7 +50,6 @@ func main() {
 		results = append(results, res)
 	}
 	fmt.Println(results)
-	wg.Wait()
 }
 
 func check(
