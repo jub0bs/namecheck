@@ -9,9 +9,17 @@ import (
 	"github.com/jub0bs/namecheck/github"
 )
 
+type Result struct {
+	Platform  string
+	Valid     bool
+	Available bool
+	Err       error
+}
+
 type Checker interface {
 	IsValid(string) bool
 	IsAvailable(string) (bool, error)
+	String() string
 }
 
 func main() {
@@ -27,25 +35,39 @@ func main() {
 	for range 20 {
 		checkers = append(checkers, &gh)
 	}
+	resultCh := make(chan Result)
 	var wg sync.WaitGroup
 	for _, checker := range checkers {
 		wg.Add(1)
-		go check(checker, username, &wg)
+		go check(checker, username, &wg, resultCh)
 	}
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+	var results []Result
+	for res := range resultCh {
+		results = append(results, res)
+	}
+	fmt.Println(results)
 	wg.Wait()
 }
 
-func check(checker Checker, username string, wg *sync.WaitGroup) {
+func check(
+	checker Checker,
+	username string,
+	wg *sync.WaitGroup,
+	resultCh chan Result,
+) {
 	defer wg.Done()
-	valid := checker.IsValid(username)
-	fmt.Printf("validity of %q on %s: %t\n", username, checker, valid)
-	if !valid {
+	res := Result{
+		Platform: checker.String(),
+		Valid:    checker.IsValid(username),
+	}
+	if !res.Valid {
+		resultCh <- res
 		return
 	}
-	avail, err := checker.IsAvailable(username)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
-	}
-	fmt.Printf("available of %q on %s: %t\n", username, checker, avail)
+	res.Available, res.Err = checker.IsAvailable(username)
+	resultCh <- res
 }
