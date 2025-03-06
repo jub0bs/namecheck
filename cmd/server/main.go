@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -23,7 +24,10 @@ type Checker interface {
 	String() string
 }
 
-var stats = make(map[string]uint)
+var (
+	mu    sync.Mutex
+	stats = make(map[string]uint) // guarded by mu
+)
 
 func main() {
 	mux := http.NewServeMux()
@@ -44,6 +48,9 @@ func main() {
 func handleStats(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
+	mu.Lock()
+	stats := maps.Clone(stats) // deliberate shadowing
+	mu.Unlock()
 	if err := enc.Encode(stats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -55,7 +62,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
 	stats[username]++
+	mu.Unlock()
 	gh := github.GitHub{
 		Client: http.DefaultClient,
 	}
