@@ -2,23 +2,14 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
-)
 
-var re = regexp.MustCompile("^[A-Z0-9a-z-]{3,39}$")
+	"github.com/jub0bs/namecheck/github"
+)
 
 func main() {
 	username := "jub0bs"
-	if !IsValid(username) {
+	if !github.IsValid(username) {
 		return
 	}
 	fmt.Println(username)
-}
-
-func IsValid(username string) bool {
-	return !strings.HasPrefix(username, "-") &&
-		!strings.HasSuffix(username, "-") &&
-		!strings.Contains(username, "--") &&
-		re.MatchString(username)
 }
