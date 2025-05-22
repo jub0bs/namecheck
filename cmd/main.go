@@ -22,9 +22,11 @@ func main() {
 		os.Exit(1)
 	}
 	username := os.Args[1]
-	checkers := []Checker{
-		&github.GitHub{Client: http.DefaultClient},
-		&bluesky.Bluesky{},
+	gh := github.GitHub{Client: http.DefaultClient}
+	bs := bluesky.Bluesky{}
+	var checkers []Checker
+	for range 20 {
+		checkers = append(checkers, &gh, &bs)
 	}
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
