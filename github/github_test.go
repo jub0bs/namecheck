@@ -1,6 +1,7 @@
 package github_test // external test package: black-box testing
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -32,5 +33,31 @@ func TestIsValid(t *testing.T) {
 			}
 		}
 		t.Run(desc, f)
+	}
+}
+
+type StubClient struct {
+	StatusCode int
+	Err        error
+}
+
+func (sc *StubClient) Get(_ string) (*http.Response, error) {
+	if sc.Err != nil {
+		return nil, sc.Err
+	}
+	res := http.Response{
+		StatusCode: sc.StatusCode,
+		Body:       http.NoBody,
+	}
+	return &res, nil
+}
+
+func TestIsAvailable404(t *testing.T) {
+	gh := github.GitHub{
+		Client: &StubClient{StatusCode: http.StatusNotFound},
+	}
+	avail, err := gh.IsAvailable("whatever")
+	if err != nil || !avail {
+		t.Errorf("got %t, %v; want true, nil", avail, err)
 	}
 }
