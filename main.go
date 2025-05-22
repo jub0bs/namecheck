@@ -29,12 +29,13 @@ func main() {
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
 		fmt.Printf("validity of %q on %s: %t\n", username, checker, valid)
-		if valid {
-			avail, err := checker.IsAvailable(username)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("availability of %q on %s: %t\n", username, checker, avail)
+		if !valid {
+			continue
 		}
+		avail, err := checker.IsAvailable(username)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("availability of %q on %s: %t\n", username, checker, avail)
 	}
 }
