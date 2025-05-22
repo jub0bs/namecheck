@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/jub0bs/namecheck"
 )
 
 var re = regexp.MustCompile("^[A-Z0-9a-z-]{3,39}$")
 
 type GitHub struct {
-	Client *http.Client
+	Client namecheck.Getter
 }
 
 func (*GitHub) IsValid(username string) bool {
