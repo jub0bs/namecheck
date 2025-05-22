@@ -36,3 +36,7 @@ func (gh *GitHub) IsAvailable(username string) (bool, error) {
 		return false, errors.New("unknown availability")
 	}
 }
+
+func (gh *GitHub) String() string {
+	return "GitHub"
+}
