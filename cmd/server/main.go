@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/jub0bs/cors"
 	"github.com/jub0bs/namecheck/bluesky"
 	"github.com/jub0bs/namecheck/github"
 )
@@ -27,7 +28,14 @@ type Result struct {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
-	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
+	corsMw, err := cors.NewMiddleware(cors.Config{
+		Origins: []string{"https://namecheck.jub0bs.dev"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	handler := corsMw.Wrap(mux)
+	if err := http.ListenAndServe(":8080", handler); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
@@ -41,7 +49,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	gh := github.GitHub{Client: http.DefaultClient}
 	bs := bluesky.Bluesky{}
 	var checkers []Checker
-	for range 20 {
+	for range 1 {
 		checkers = append(checkers, &gh, &bs)
 	}
 	resultCh := make(chan Result)
