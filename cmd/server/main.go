@@ -25,9 +25,12 @@ type Result struct {
 	Available bool   `json:"available"`
 }
 
+var stats = make(map[string]uint)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
+	mux.HandleFunc("GET /stats", handleStats)
 	corsMw, err := cors.NewMiddleware(cors.Config{
 		Origins: []string{"https://namecheck.jub0bs.dev"},
 	})
@@ -40,12 +43,21 @@ func main() {
 	}
 }
 
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(stats); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	stats[username]++
 	gh := github.GitHub{Client: http.DefaultClient}
 	bs := bluesky.Bluesky{}
 	var checkers []Checker
