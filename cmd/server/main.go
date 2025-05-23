@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -25,7 +26,10 @@ type Result struct {
 	Available bool   `json:"available"`
 }
 
-var stats = make(map[string]uint)
+var (
+	stats = make(map[string]uint) // guarded by mu
+	mu    sync.Mutex
+)
 
 func main() {
 	mux := http.NewServeMux()
@@ -46,7 +50,10 @@ func main() {
 func handleStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(stats); err != nil {
+	mu.Lock()
+	statsCopy := maps.Clone(stats)
+	mu.Unlock()
+	if err := enc.Encode(statsCopy); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -57,7 +64,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
 	stats[username]++
+	mu.Unlock()
 	gh := github.GitHub{Client: http.DefaultClient}
 	bs := bluesky.Bluesky{}
 	var checkers []Checker
