@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -22,7 +23,10 @@ type Result struct {
 	Available bool
 }
 
-var stats = make(map[string]uint)
+var (
+	stats = make(map[string]uint) // guarded by mu
+	mu    sync.Mutex
+)
 
 func main() {
 	mux := http.NewServeMux()
@@ -34,7 +38,10 @@ func main() {
 }
 
 func handleStats(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprint(w, stats)
+	mu.Lock()
+	statsCopy := maps.Clone(stats)
+	mu.Unlock()
+	fmt.Fprint(w, statsCopy)
 }
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +50,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
 	stats[username]++
+	mu.Unlock()
 	const n = 20
 	checkers := make([]Checker, n)
 	gh := github.GitHub{Client: http.DefaultClient}
