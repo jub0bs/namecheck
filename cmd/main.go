@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jub0bs/namecheck/bluesky"
 	"github.com/jub0bs/namecheck/github"
 )
 
@@ -22,9 +21,11 @@ func main() {
 		os.Exit(1)
 	}
 	username := os.Args[1]
-	checkers := []Checker{
-		&github.GitHub{Client: http.DefaultClient},
-		&bluesky.Bluesky{},
+	const n = 50
+	checkers := make([]Checker, n)
+	gh := github.GitHub{Client: http.DefaultClient}
+	for i := range n {
+		checkers[i] = &gh
 	}
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
