@@ -22,12 +22,19 @@ type Result struct {
 	Available bool
 }
 
+var stats = make(map[string]uint)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
+	mux.HandleFunc("GET /stats", handleStats)
 	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+}
+
+func handleStats(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprint(w, stats)
 }
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +43,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	stats[username]++
 	const n = 20
 	checkers := make([]Checker, n)
 	gh := github.GitHub{Client: http.DefaultClient}
