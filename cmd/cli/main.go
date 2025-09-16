@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,7 +13,7 @@ import (
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -37,9 +38,11 @@ func main() {
 	}
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	for _, checker := range checkers {
 		wg.Add(1)
-		go check(checker, username, &wg, resultCh)
+		go check(ctx, checker, username, &wg, resultCh)
 	}
 	go func() {
 		wg.Wait()
@@ -53,6 +56,7 @@ func main() {
 }
 
 func check(
+	ctx context.Context,
 	checker Checker,
 	username string,
 	wg *sync.WaitGroup,
@@ -67,6 +71,6 @@ func check(
 		resultCh <- res
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	resultCh <- res
 }

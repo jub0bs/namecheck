@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"regexp"
@@ -22,9 +23,13 @@ func (*GitHub) IsValid(username string) bool {
 		re.MatchString(username)
 }
 
-func (gh *GitHub) IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(ctx context.Context, username string) (bool, error) {
 	addr := "https://github.com/" + username
-	resp, err := gh.Client.Get(addr)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
+	if err != nil {
+		return false, err
+	}
+	resp, err := gh.Client.Do(req)
 	if err != nil {
 		return false, err
 	}

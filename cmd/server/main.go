@@ -16,7 +16,7 @@ import (
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -70,7 +70,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	gh := github.GitHub{Client: http.DefaultClient}
 	bs := bluesky.Bluesky{}
 	var checkers []Checker
-	for range 1 {
+	for range 40 {
 		checkers = append(checkers, &gh, &bs)
 	}
 	resultCh := make(chan Result)
@@ -90,8 +90,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	var finished bool
 	for !finished {
 		select {
-		case <-errorCh:
+		case err := <-errorCh:
 			cancel()
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		case res, ok := <-resultCh:
@@ -133,7 +134,7 @@ func check(
 		send(ctx, resultCh, res)
 		return
 	}
-	avail, err := checker.IsAvailable(username)
+	avail, err := checker.IsAvailable(ctx, username)
 	if err != nil {
 		send(ctx, errorCh, err)
 		return
