@@ -12,6 +12,7 @@ import (
 type Checker interface {
 	IsValid(string) bool
 	IsAvailable(string) (bool, error)
+	fmt.Stringer
 }
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	checkers := []Checker{&gh, &bs}
 	for _, checker := range checkers {
 		valid := checker.IsValid(username)
-		fmt.Printf("validity of %q on ???: %t\n", username, valid)
+		fmt.Printf("validity of %q on %s: %t\n", username, checker, valid)
 		if !valid {
 			continue
 		}
@@ -35,7 +36,7 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Printf("availability of %q on ???: %t\n", username, avail)
+			fmt.Printf("availability of %q on %s %t\n", username, checker, avail)
 		}
 	}
 }
