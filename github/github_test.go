@@ -21,9 +21,10 @@ func TestIsValid(t *testing.T) {
 		"ends with a hyphen":               {"jub0bs-", false},
 		"all good":                         {"jub0bs", true},
 	}
+	var gh github.GitHub
 	for desc, tc := range testCases {
 		f := func(t *testing.T) {
-			got := github.IsValid(tc.username)
+			got := gh.IsValid(tc.username)
 			if got != tc.want {
 				const tmpl = "github.IsValid(%q): got %t; want %t"
 				t.Errorf(tmpl, tc.username, got, tc.want)
