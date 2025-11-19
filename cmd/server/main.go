@@ -21,7 +21,6 @@ type Result struct {
 	Platform  string `json:"platform"`
 	Valid     bool   `json:"valid"`
 	Available bool   `json:"available"`
-	Err       error  `json:"error,omitempty"`
 }
 
 func main() {
@@ -53,18 +52,30 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		checkers = append(checkers, &gh)
 	}
 	resultCh := make(chan Result)
+	errorCh := make(chan error)
 	var wg sync.WaitGroup
 	wg.Add(len(checkers))
 	for _, checker := range checkers {
-		go check(checker, username, &wg, resultCh)
+		go check(checker, username, &wg, resultCh, errorCh)
 	}
 	go func() {
 		wg.Wait()
 		close(resultCh)
 	}()
 	var results []Result
-	for res := range resultCh {
-		results = append(results, res)
+	var finished bool
+	for !finished {
+		select {
+		case <-errorCh:
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		case res, ok := <-resultCh:
+			if !ok {
+				finished = true
+				continue
+			}
+			results = append(results, res)
+		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -85,6 +96,7 @@ func check(
 	username string,
 	wg *sync.WaitGroup,
 	resultCh chan<- Result,
+	errorCh chan<- error,
 ) {
 	defer wg.Done()
 	res := Result{
@@ -95,6 +107,11 @@ func check(
 		resultCh <- res
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	avail, err := checker.IsAvailable(username)
+	if err != nil {
+		errorCh <- err
+		return
+	}
+	res.Available = avail
 	resultCh <- res
 }
