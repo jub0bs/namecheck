@@ -7,7 +7,11 @@ import (
 	"strings"
 )
 
-func IsValid(username string) bool {
+type GitHub struct {
+	Client *http.Client
+}
+
+func (*GitHub) IsValid(username string) bool {
 	return !strings.HasPrefix(username, "-") &&
 		!strings.HasSuffix(username, "-") &&
 		!strings.Contains(username, "--") &&
@@ -16,13 +20,13 @@ func IsValid(username string) bool {
 
 var re = regexp.MustCompile("^[a-zA-Z0-9-]{3,39}$")
 
-func IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	addr := "https://github.com/" + username
 	req, err := http.NewRequest(http.MethodGet, addr, nil)
 	if err != nil {
 		return false, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gh.Client.Do(req)
 	if err != nil {
 		return false, err
 	}

@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/jub0bs/namecheck/bluesky"
 	"github.com/jub0bs/namecheck/github"
@@ -14,10 +16,15 @@ func main() {
 		os.Exit(2)
 	}
 	username := os.Args[1]
-	valid := github.IsValid(username)
+	gh := github.GitHub{
+		Client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
+	valid := gh.IsValid(username)
 	fmt.Printf("validity of %q on GitHub: %t\n", username, valid)
 	if valid {
-		avail, err := github.IsAvailable(username)
+		avail, err := gh.IsAvailable(username)
 		if err != nil {
 			fmt.Println(err)
 		} else {
