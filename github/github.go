@@ -17,7 +17,12 @@ func IsValid(username string) bool {
 var re = regexp.MustCompile("^[a-zA-Z0-9-]{3,39}$")
 
 func IsAvailable(username string) (bool, error) {
-	resp, err := http.Get("https://github.com/" + username)
+	addr := "https://github.com/" + username
+	req, err := http.NewRequest(http.MethodGet, addr, nil)
+	if err != nil {
+		return false, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return false, err
 	}
