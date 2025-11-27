@@ -9,10 +9,12 @@ import (
 	"github.com/jub0bs/namecheck"
 )
 
+// A GitHub allows you to check usernames on GitHub.
 type GitHub struct {
 	Client namecheck.Doer
 }
 
+// IsValid reports whether username is valid on GitHub.
 func (*GitHub) IsValid(username string) bool {
 	return !strings.HasPrefix(username, "-") &&
 		!strings.HasSuffix(username, "-") &&
@@ -22,6 +24,7 @@ func (*GitHub) IsValid(username string) bool {
 
 var re = regexp.MustCompile("^[a-zA-Z0-9-]{3,39}$")
 
+// IsAvailable reports whether username is available on GitHub.
 func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	addr := "https://github.com/" + username
 	req, err := http.NewRequest(http.MethodGet, addr, nil)

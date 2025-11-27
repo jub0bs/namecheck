@@ -2,12 +2,19 @@ package github_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/jub0bs/namecheck/github"
 )
+
+func ExampleGitHub_IsValid() {
+	var gh github.GitHub
+	fmt.Println(gh.IsValid("jub0bs"))
+	// Output: true
+}
 
 func TestIsValid(t *testing.T) {
 	type TestCase struct {
