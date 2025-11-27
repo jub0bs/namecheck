@@ -31,10 +31,11 @@ func main() {
 			fmt.Printf("availability of %q on GitHub: %t\n", username, avail)
 		}
 	}
-	valid = bluesky.IsValid(username)
+	var bs bluesky.Bluesky
+	valid = bs.IsValid(username)
 	fmt.Printf("validity of %q on Bluesky: %t\n", username, valid)
 	if valid {
-		avail, err := bluesky.IsAvailable(username)
+		avail, err := bs.IsAvailable(username)
 		if err != nil {
 			fmt.Println(err)
 		} else {
