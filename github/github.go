@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/jub0bs/namecheck"
 )
 
 type GitHub struct {
-	Client *http.Client
+	Client namecheck.Doer
 }
 
 func (*GitHub) IsValid(username string) bool {

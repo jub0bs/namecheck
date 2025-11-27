@@ -1,6 +1,7 @@
 package github_test
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -32,4 +33,20 @@ func TestIsValid(t *testing.T) {
 		}
 		t.Run(desc, f)
 	}
+}
+
+type StubClient struct {
+	StatusCode int
+	Err        error
+}
+
+func (c *StubClient) Do(req *http.Request) (*http.Response, error) {
+	if c.Err != nil {
+		return nil, c.Err
+	}
+	res := http.Response{
+		StatusCode: c.StatusCode,
+		Body:       http.NoBody,
+	}
+	return &res, nil
 }
