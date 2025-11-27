@@ -9,3 +9,7 @@ func (*Bluesky) IsValid(username string) bool {
 func (*Bluesky) IsAvailable(username string) (bool, error) {
 	return false, nil
 }
+
+func (gh *Bluesky) String() string {
+	return "Bluesky"
+}
