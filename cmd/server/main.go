@@ -57,7 +57,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		checkers = append(checkers, &gh)
 	}
 	resultCh := make(chan Result)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 	var wg sync.WaitGroup
 	wg.Add(len(checkers))
