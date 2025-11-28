@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jub0bs/cors"
 	"github.com/jub0bs/namecheck/github"
 )
 
@@ -27,7 +28,13 @@ type Result struct {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
-	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
+	corsMw, err := cors.NewMiddleware(cors.Config{
+		Origins: []string{"https://namecheck.jub0bs.dev"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := http.ListenAndServe(":8080", corsMw.Wrap(mux)); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
