@@ -63,7 +63,7 @@ func TestIsAvailableError(t *testing.T) {
 	gh := github.GitHub{
 		Client: &StubClient{Err: errors.New("oh no")},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err == nil || avail {
 		t.Errorf("got %t, %s; want false, some non-nil error", avail, err)
 	}
@@ -73,7 +73,7 @@ func TestIsAvailable404(t *testing.T) {
 	gh := github.GitHub{
 		Client: &StubClient{StatusCode: http.StatusNotFound},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err != nil || !avail {
 		t.Errorf("got %t, %s; want false, some non-nil error", avail, err)
 	}
@@ -83,7 +83,7 @@ func TestIsAvailable200(t *testing.T) {
 	gh := github.GitHub{
 		Client: &StubClient{StatusCode: http.StatusOK},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err != nil || avail {
 		t.Errorf("got %t, %s; want false, some non-nil error", avail, err)
 	}
@@ -93,7 +93,7 @@ func TestIsAvailableUnexpectedStatusCode(t *testing.T) {
 	gh := github.GitHub{
 		Client: &StubClient{StatusCode: http.StatusBadGateway},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err == nil || avail {
 		t.Errorf("got %t, %s; want false, some non-nil error", avail, err)
 	}

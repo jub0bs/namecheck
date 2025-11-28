@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -25,9 +26,9 @@ func (*GitHub) IsValid(username string) bool {
 var re = regexp.MustCompile("^[a-zA-Z0-9-]{3,39}$")
 
 // IsAvailable reports whether username is available on GitHub.
-func (gh *GitHub) IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(ctx context.Context, username string) (bool, error) {
 	addr := "https://github.com/" + username
-	req, err := http.NewRequest(http.MethodGet, addr, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
 	if err != nil {
 		return false, err
 	}

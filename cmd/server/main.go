@@ -15,7 +15,7 @@ import (
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -111,7 +111,7 @@ func check(
 		}
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	select {
 	case <-ctx.Done():
 		return
