@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -59,7 +60,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 	wg.Add(len(checkers))
 	for _, checker := range checkers {
-		go check(checker, username, &wg, resultCh)
+		go check(context.TODO(), checker, username, &wg, resultCh)
 	}
 	go func() {
 		wg.Wait()
@@ -67,6 +68,10 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}()
 	var results []Result
 	for res := range resultCh {
+		if res.Err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		results = append(results, res)
 	}
 	data := struct {
@@ -84,6 +89,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func check(
+	ctx context.Context,
 	checker Checker,
 	username string,
 	wg *sync.WaitGroup,
@@ -95,9 +101,17 @@ func check(
 		Valid:    checker.IsValid(username),
 	}
 	if !res.Valid {
-		resultCh <- res
+		select {
+		case <-ctx.Done():
+			return
+		case resultCh <- res:
+		}
 		return
 	}
 	res.Available, res.Err = checker.IsAvailable(username)
-	resultCh <- res
+	select {
+	case <-ctx.Done():
+		return
+	case resultCh <- res:
+	}
 }
