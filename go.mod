@@ -2,7 +2,6 @@ module github.com/jub0bs/namecheck
 
 go 1.25.4
 
-require github.com/jub0bs/cors/v2 v2.9.2
 require github.com/jub0bs/cors v0.9.2
 
 require (
