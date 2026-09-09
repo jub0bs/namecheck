@@ -2,10 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/jub0bs/namecheck/github"
 )
 
 func main() {
-	fmt.Println(github.IsValid("jub0bs"))
+	username := "jub0bs"
+	if !github.IsValid(username) {
+		return
+	}
+	avail, err := github.IsAvailable(username)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !avail {
+		return
+	}
+	fmt.Printf("%q is valid and available on GitHub\n", username)
 }
