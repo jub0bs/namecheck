@@ -23,10 +23,13 @@ func TestIsValid(t *testing.T) {
 		{"all good", "jub0bs", true},
 	}
 	for _, tc := range testCases {
-		got := github.IsValid(tc.username)
-		if got != tc.want {
-			const tmpl = "%s: github.IsValid(%q): got %t; want %t"
-			t.Errorf(tmpl, tc.desc, tc.username, got, tc.want)
+		f := func(t *testing.T) {
+			got := github.IsValid(tc.username)
+			if got != tc.want {
+				const tmpl = "github.IsValid(%q): got %t; want %t"
+				t.Errorf(tmpl, tc.username, got, tc.want)
+			}
 		}
+		t.Run(tc.desc, f)
 	}
 }
