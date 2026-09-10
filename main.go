@@ -13,6 +13,7 @@ import (
 type Checker interface {
 	IsValid(string) bool
 	IsAvailable(string) (bool, error)
+	fmt.Stringer
 }
 
 func main() {
@@ -36,6 +37,6 @@ func main() {
 		if !avail {
 			continue
 		}
-		fmt.Printf("%q is valid and available on ???\n", username)
+		fmt.Printf("%q is valid and available on %s\n", username, checker)
 	}
 }

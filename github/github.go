@@ -39,3 +39,7 @@ func (gh *GitHub) IsAvailable(username string) (bool, error) {
 		return false, fmt.Errorf("unknown availability of %q on GitHub", username)
 	}
 }
+
+func (gh *GitHub) String() string {
+	return "GitHub"
+}
