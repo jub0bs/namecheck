@@ -5,11 +5,15 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/jub0bs/namecheck/bluesky"
 	"github.com/jub0bs/namecheck/github"
 )
+
+type Checker interface {
+	IsValid(string) bool
+	IsAvailable(string) (bool, error)
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -17,32 +21,21 @@ func main() {
 		os.Exit(1)
 	}
 	username := os.Args[1]
-	gh := github.GitHub{
-		Client: &http.Client{
-			Timeout: 5 * time.Second,
-		},
+	checkers := []Checker{
+		&github.GitHub{Client: http.DefaultClient},
+		&bluesky.Bluesky{},
 	}
-	if !gh.IsValid(username) {
-		return
+	for _, checker := range checkers {
+		if !checker.IsValid(username) {
+			continue
+		}
+		avail, err := checker.IsAvailable(username)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if !avail {
+			continue
+		}
+		fmt.Printf("%q is valid and available on ???\n", username)
 	}
-	avail, err := gh.IsAvailable(username)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !avail {
-		return
-	}
-	fmt.Printf("%q is valid and available on GitHub\n", username)
-	var bs bluesky.Bluesky
-	if !bs.IsValid(username) {
-		return
-	}
-	avail, err = bs.IsAvailable(username)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !avail {
-		return
-	}
-	fmt.Printf("%q is valid and available on Bluesky\n", username)
 }
