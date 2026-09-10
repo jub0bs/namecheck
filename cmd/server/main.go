@@ -2,6 +2,15 @@ package main
 
 import "fmt"
 
+func grindCoffeeBeans() {
+	fmt.Println("Grinding coffee beans...")
+}
+
+func frothMilk() {
+	fmt.Println("Frothing milk...")
+}
+
 func main() {
-	fmt.Println("Hello, 世界")
+	go grindCoffeeBeans()
+	go frothMilk()
 }
