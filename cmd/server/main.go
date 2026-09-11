@@ -69,14 +69,14 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	stats[username]++
 	mu.Unlock()
 	gh := github.GitHub{Client: http.DefaultClient}
-	const n = 16
+	const n = 64
 	checkers := make([]Checker, n)
 	for i := range n {
 		checkers[i] = &gh
 	}
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 	for _, checker := range checkers {
 		wg.Add(1)
