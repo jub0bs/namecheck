@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"sync"
 
@@ -24,9 +25,15 @@ type Result struct {
 	Err       error  `json:"error,omitempty"`
 }
 
+var (
+	stats = make(map[string]uint)
+	mu    sync.Mutex // guards stats
+)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
+	mux.HandleFunc("GET /stats", handleStats)
 	corsMw, err := cors.NewMiddleware(cors.Config{
 		Origins: []string{"https://namecheck.jub0bs.dev"},
 	})
@@ -39,12 +46,27 @@ func main() {
 	}
 }
 
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	mu.Lock()
+	stats := maps.Clone(stats)
+	mu.Unlock()
+	if err := enc.Encode(stats); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
+	stats[username]++
+	mu.Unlock()
 	gh := github.GitHub{Client: http.DefaultClient}
 	const n = 16
 	checkers := make([]Checker, n)
