@@ -59,7 +59,7 @@ func TestIsAvailableErrorCase(t *testing.T) {
 			Err: errors.New("oh no"),
 		},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err == nil || avail {
 		t.Errorf("got %t, %v; want false, some non-nil error", avail, err)
 	}
@@ -71,7 +71,7 @@ func TestIsAvailable404(t *testing.T) {
 			StatusCode: http.StatusNotFound,
 		},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err != nil || !avail {
 		t.Errorf("got %t, %v; want true, nil", avail, err)
 	}
@@ -83,7 +83,7 @@ func TestIsAvailable200(t *testing.T) {
 			StatusCode: http.StatusOK,
 		},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err != nil || avail {
 		t.Errorf("got %t, %v; want false, nil", avail, err)
 	}
@@ -95,7 +95,7 @@ func TestIsAvailableOtherStatusCode(t *testing.T) {
 			StatusCode: 299,
 		},
 	}
-	avail, err := gh.IsAvailable("whatever")
+	avail, err := gh.IsAvailable(t.Context(), "whatever")
 	if err == nil || avail {
 		t.Errorf("got %t, %v; want false, some non-nil error", avail, err)
 	}
