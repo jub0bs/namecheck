@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log"
 	"maps"
@@ -49,11 +49,10 @@ func main() {
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
 	mu.Lock()
 	stats := maps.Clone(stats)
 	mu.Unlock()
-	if err := enc.Encode(stats); err != nil {
+	if err := json.MarshalWrite(w, stats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -104,8 +103,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		Results:  results,
 	}
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(rb); err != nil {
+	if err := json.MarshalWrite(w, rb); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
