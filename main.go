@@ -6,24 +6,18 @@ import (
 	"strings"
 )
 
+var re = regexp.MustCompile("^[A-Za-z0-9-]{3,39}$")
+
 func main() {
 	username := "jub0bs"
-	fmt.Println(IsValid(username))
+	if IsValid(username) {
+		fmt.Println(username)
+	}
 }
 
-func IsValid(username string) (bool, error) {
-	if strings.HasPrefix(username, "-") ||
-		strings.HasSuffix(username, "-") ||
-		strings.Contains(username, "--") {
-		return false, nil
-	}
-	ok, err := regexp.MatchString("^[A-Za-z0-9-]{3,39}$", username)
-	if err != nil {
-		return false, err
-		//log.Fatal("impossible to determine validity of username")
-	}
-	if !ok {
-		return false, nil
-	}
-	return true, nil
+func IsValid(username string) bool {
+	return !strings.HasPrefix(username, "-") &&
+		!strings.HasSuffix(username, "-") &&
+		!strings.Contains(username, "--") &&
+		re.MatchString(username)
 }
