@@ -2,24 +2,28 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 )
 
 func main() {
 	username := "jub0bs"
+	fmt.Println(IsValid(username))
+}
+
+func IsValid(username string) (bool, error) {
 	if strings.HasPrefix(username, "-") ||
 		strings.HasSuffix(username, "-") ||
 		strings.Contains(username, "--") {
-		return
+		return false, nil
 	}
 	ok, err := regexp.MatchString("^[A-Za-z0-9-]{3,39}$", username)
 	if err != nil {
-		log.Fatal("impossible to determine validity of username")
+		return false, err
+		//log.Fatal("impossible to determine validity of username")
 	}
 	if !ok {
-		return
+		return false, nil
 	}
-	fmt.Println(username)
+	return true, nil
 }
