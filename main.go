@@ -10,6 +10,11 @@ import (
 	"github.com/jub0bs/namecheck/github"
 )
 
+type Checker interface {
+	IsValid(string) bool
+	IsAvailable(string) (bool, error)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "usage: namecheck <username>")
@@ -21,25 +26,19 @@ func main() {
 			Timeout: 5 * time.Second,
 		},
 	}
-	valid := gh.IsValid(username)
-	fmt.Printf("validity of %q on GitHub: %t\n", username, valid)
-	if valid {
-		available, err := gh.IsAvailable(username)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("availability of %q on GitHub: %t\n", username, available)
-		}
-	}
 	var bs bluesky.Bluesky
-	valid = bs.IsValid(username)
-	fmt.Printf("validity of %q on Bluesky: %t\n", username, valid)
-	if valid {
-		available, err := bs.IsAvailable(username)
+	checkers := []Checker{&gh, &bs}
+	for _, checker := range checkers {
+		valid := checker.IsValid(username)
+		fmt.Printf("validity of %q on ???: %t\n", username, valid)
+		if !valid {
+			continue
+		}
+		available, err := checker.IsAvailable(username)
 		if err != nil {
 			fmt.Println(err)
-		} else {
-			fmt.Printf("availability of %q on Bluesky: %t\n", username, available)
+			continue
 		}
+		fmt.Printf("availability of %q on ???: %t\n", username, available)
 	}
 }
