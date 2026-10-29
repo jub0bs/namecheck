@@ -9,19 +9,23 @@ import (
 
 var re = regexp.MustCompile("^[A-Za-z0-9-]{3,39}$")
 
-func IsValid(username string) bool {
+type GitHub struct {
+	Client *http.Client
+}
+
+func (GitHub) IsValid(username string) bool {
 	return !strings.HasPrefix(username, "-") &&
 		!strings.HasSuffix(username, "-") &&
 		!strings.Contains(username, "--") &&
 		re.MatchString(username)
 }
 
-func IsAvailable(username string) (bool, error) {
+func (gh GitHub) IsAvailable(username string) (bool, error) {
 	req, err := http.NewRequest("GET", "https://github.com/"+username, nil)
 	if err != nil {
 		return false, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gh.Client.Do(req)
 	if err != nil {
 		return false, err
 	}
