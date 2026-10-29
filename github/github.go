@@ -13,14 +13,14 @@ type GitHub struct {
 	Client *http.Client
 }
 
-func (GitHub) IsValid(username string) bool {
+func (*GitHub) IsValid(username string) bool {
 	return !strings.HasPrefix(username, "-") &&
 		!strings.HasSuffix(username, "-") &&
 		!strings.Contains(username, "--") &&
 		re.MatchString(username)
 }
 
-func (gh GitHub) IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(username string) (bool, error) {
 	req, err := http.NewRequest("GET", "https://github.com/"+username, nil)
 	if err != nil {
 		return false, err
