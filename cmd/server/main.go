@@ -86,6 +86,10 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}()
 	var results []Result
 	for res := range resultCh {
+		if res.Err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		results = append(results, res)
 	}
 	w.Header().Set("Content-Type", "application/json")
