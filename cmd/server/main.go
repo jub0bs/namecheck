@@ -23,7 +23,7 @@ type Result struct {
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -122,7 +122,7 @@ func check(ctx context.Context, checker Checker, username string, resultCh chan<
 		}
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	select {
 	case <-ctx.Done():
 		break

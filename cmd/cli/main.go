@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -19,7 +20,7 @@ type Result struct {
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -64,6 +65,6 @@ func check(checker Checker, username string, resultCh chan<- Result) {
 		resultCh <- res
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	res.Available, res.Err = checker.IsAvailable(context.Background(), username)
 	resultCh <- res
 }
