@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"sync"
 	"time"
@@ -25,7 +26,10 @@ type Checker interface {
 	fmt.Stringer
 }
 
-var stats = make(map[string]int)
+var (
+	stats = make(map[string]int) // guarded by mu
+	mu    sync.Mutex
+)
 
 func main() {
 	mux := http.NewServeMux()
@@ -43,6 +47,9 @@ func main() {
 }
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	stats := maps.Clone(stats)
+	mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.MarshalWrite(w, stats); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -55,7 +62,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	mu.Lock()
 	stats[username]++
+	mu.Unlock()
 	gh := github.GitHub{
 		Client: &http.Client{
 			Timeout: 5 * time.Second,
