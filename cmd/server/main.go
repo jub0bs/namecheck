@@ -25,9 +25,12 @@ type Checker interface {
 	fmt.Stringer
 }
 
+var stats = make(map[string]int)
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /check", handleCheck)
+	mux.HandleFunc("GET /stats", handleStats)
 	corsMw, err := cors.NewMiddleware(cors.Config{
 		Origins: []string{"https://namecheck.jub0bs.dev"},
 	})
@@ -39,12 +42,20 @@ func main() {
 	}
 }
 
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.MarshalWrite(w, stats); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	stats[username]++
 	gh := github.GitHub{
 		Client: &http.Client{
 			Timeout: 5 * time.Second,
