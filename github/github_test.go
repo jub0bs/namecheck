@@ -1,6 +1,7 @@
 package github_test
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -49,4 +50,32 @@ func (sc *StubClient) Do(req *http.Request) (*http.Response, error) {
 		Body:       http.NoBody,
 	}
 	return &resp, nil
+}
+
+func TestIsAvailableError(t *testing.T) {
+	client := StubClient{
+		Err: errors.New("oh no"),
+	}
+	gh := github.GitHub{
+		Client: &client,
+	}
+	const username = "whatever"
+	avail, err := gh.IsAvailable(username)
+	if err == nil || avail {
+		t.Errorf("IsAvailable(%q): got %t, %v; want false, some non-nil error", username, avail, err)
+	}
+}
+
+func TestIsAvailableNotFound(t *testing.T) {
+	client := StubClient{
+		StatusCode: http.StatusNotFound,
+	}
+	gh := github.GitHub{
+		Client: &client,
+	}
+	const username = "whatever"
+	avail, err := gh.IsAvailable(username)
+	if err != nil || !avail {
+		t.Errorf("IsAvailable(%q): got %t, %v; want true, nil", username, avail, err)
+	}
 }
