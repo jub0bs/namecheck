@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json/v2"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,10 +12,10 @@ import (
 )
 
 type Result struct {
-	Platform  string
-	Valid     bool
-	Available bool
-	Err       error
+	Platform  string `json:"platform"`
+	Valid     bool   `json:"valid"`
+	Available bool   `json:"available"`
+	Err       error  `json:"error,omitempty"`
 }
 
 type Checker interface {
@@ -60,7 +61,17 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	for res := range resultCh {
 		results = append(results, res)
 	}
-	fmt.Fprint(w, results)
+	w.Header().Set("Content-Type", "application/json")
+	data := struct {
+		Username string   `json:"username"`
+		Results  []Result `json:"results,omitempty"`
+	}{
+		Username: username,
+		Results:  results,
+	}
+	if err := json.MarshalWrite(w, data); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func check(checker Checker, username string, resultCh chan<- Result) {
