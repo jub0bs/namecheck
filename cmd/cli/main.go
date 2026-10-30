@@ -55,7 +55,7 @@ func main() {
 	fmt.Println(results)
 }
 
-func check(checker Checker, username string, resultCh chan Result) {
+func check(checker Checker, username string, resultCh chan<- Result) {
 	res := Result{
 		Platform: checker.String(),
 		Valid:    checker.IsValid(username),
