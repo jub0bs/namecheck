@@ -10,6 +10,13 @@ import (
 	"github.com/jub0bs/namecheck/github"
 )
 
+type Result struct {
+	Platform  string
+	Valid     bool
+	Available bool
+	Err       error
+}
+
 type Checker interface {
 	IsValid(string) bool
 	IsAvailable(string) (bool, error)
@@ -32,23 +39,31 @@ func main() {
 	for range n {
 		checkers = append(checkers, &gh)
 	}
+	resultCh := make(chan Result)
 	var wg sync.WaitGroup
 	for _, checker := range checkers {
-		wg.Go(func() { check(checker, username) })
+		wg.Go(func() { check(checker, username, resultCh) })
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+	var results []Result
+	for res := range resultCh {
+		results = append(results, res)
+	}
+	fmt.Println(results)
 }
 
-func check(checker Checker, username string) {
-	valid := checker.IsValid(username)
-	fmt.Printf("validity of %q on %s: %t\n", username, checker, valid)
-	if !valid {
+func check(checker Checker, username string, resultCh chan Result) {
+	res := Result{
+		Platform: checker.String(),
+		Valid:    checker.IsValid(username),
+	}
+	if !res.Valid {
+		resultCh <- res
 		return
 	}
-	available, err := checker.IsAvailable(username)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("availability of %q on %s: %t\n", username, checker, available)
+	res.Available, res.Err = checker.IsAvailable(username)
+	resultCh <- res
 }
