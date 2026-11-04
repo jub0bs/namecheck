@@ -2,20 +2,75 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"sync"
+	"time"
+
+	"github.com/jub0bs/namecheck/github"
 )
 
-func grindCoffeeBeans(grams float64) {
-	fmt.Printf("Grinding %f grams of coffee beans...\n", grams)
+type Result struct {
+	Platform  string
+	Valid     bool
+	Available bool
+	Err       error
 }
 
-func frothMilk(ml float64) {
-	fmt.Printf("Frothing %f ml of milk...\n", ml)
+type Checker interface {
+	IsValid(string) bool
+	IsAvailable(string) (bool, error)
+	fmt.Stringer
 }
 
 func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /check", handleCheck)
+	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
+}
+
+func handleCheck(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	gh := github.GitHub{
+		Client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
+	var checkers []Checker
+	for range 20 {
+		checkers = append(checkers, &gh)
+	}
+	resultCh := make(chan Result)
 	var wg sync.WaitGroup
-	wg.Go(func() { grindCoffeeBeans(7) })
-	wg.Go(func() { frothMilk(30) })
-	wg.Wait()
+	for _, checker := range checkers {
+		wg.Go(func() { check(username, checker, resultCh) })
+	}
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+	var results []Result
+	for res := range resultCh {
+		results = append(results, res)
+	}
+	fmt.Fprint(w, results)
+}
+
+func check(username string, checker Checker, resultCh chan<- Result) {
+	res := Result{
+		Platform: checker.String(),
+		Valid:    checker.IsValid(username),
+	}
+	if !res.Valid {
+		resultCh <- res
+		return
+	}
+	res.Available, res.Err = checker.IsAvailable(username)
+	resultCh <- res
 }
