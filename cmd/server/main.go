@@ -76,7 +76,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	for _, checker := range checkers {
 		wg.Go(func() { check(ctx, username, checker, resultCh) })
@@ -120,6 +120,7 @@ func check(
 	if !res.Valid {
 		select {
 		case <-ctx.Done():
+			fmt.Println("canceled")
 			return
 		case resultCh <- res:
 		}
@@ -128,6 +129,7 @@ func check(
 	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	select {
 	case <-ctx.Done():
+		fmt.Println("canceled")
 		return
 	case resultCh <- res:
 	}
