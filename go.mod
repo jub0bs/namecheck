@@ -2,7 +2,10 @@ module github.com/jub0bs/namecheck
 
 go 1.27.3
 
-require github.com/jub0bs/cors v1.3.0
+require (
+	github.com/jub0bs/cors v1.3.0
+	golang.org/x/sync v0.24.0
+)
 
 require (
 	golang.org/x/net v0.62.0 // indirect

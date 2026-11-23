@@ -12,6 +12,7 @@ import (
 
 	"github.com/jub0bs/cors"
 	"github.com/jub0bs/namecheck/github"
+	"golang.org/x/sync/semaphore"
 )
 
 type Result struct {
@@ -60,7 +61,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 
 type token struct{}
 
-var sem = make(chan token, 16)
+var sem = semaphore.NewWeighted(16)
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
@@ -84,9 +85,9 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	go func() {
 		for _, checker := range checkers {
-			sem <- token{}
+			sem.Acquire(context.Background(), 1)
 			wg.Go(func() {
-				defer func() { <-sem }()
+				defer func() { sem.Release(1) }()
 				check(ctx, username, checker, resultCh)
 			})
 		}
