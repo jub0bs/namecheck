@@ -60,7 +60,7 @@ func TestIsAvailableError(t *testing.T) {
 		Client: &client,
 	}
 	const username = "whatever"
-	avail, err := gh.IsAvailable(username)
+	avail, err := gh.IsAvailable(t.Context(), username)
 	if err == nil || avail {
 		t.Errorf("IsAvailable(%q): got %t, %v; want false, some non-nil error", username, avail, err)
 	}
@@ -74,7 +74,7 @@ func TestIsAvailableNotFound(t *testing.T) {
 		Client: &client,
 	}
 	const username = "whatever"
-	avail, err := gh.IsAvailable(username)
+	avail, err := gh.IsAvailable(t.Context(), username)
 	if err != nil || !avail {
 		t.Errorf("IsAvailable(%q): got %t, %v; want true, nil", username, avail, err)
 	}

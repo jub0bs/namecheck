@@ -23,7 +23,7 @@ type Result struct {
 
 type Checker interface {
 	IsValid(string) bool
-	IsAvailable(string) (bool, error)
+	IsAvailable(context.Context, string) (bool, error)
 	fmt.Stringer
 }
 
@@ -68,9 +68,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	stats[username]++
 	mu.Unlock()
 	gh := github.GitHub{
-		Client: &http.Client{
-			Timeout: 5 * time.Second,
-		},
+		Client: http.DefaultClient,
 	}
 	var checkers []Checker
 	for range 20 {
@@ -78,7 +76,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, checker := range checkers {
 		wg.Go(func() { check(ctx, username, checker, resultCh) })
@@ -127,7 +125,7 @@ func check(
 		}
 		return
 	}
-	res.Available, res.Err = checker.IsAvailable(username)
+	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	select {
 	case <-ctx.Done():
 		return

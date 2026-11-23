@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -23,12 +24,12 @@ func (*GitHub) IsValid(username string) bool {
 		re.MatchString(username)
 }
 
-func (gh *GitHub) IsAvailable(username string) (bool, error) {
+func (gh *GitHub) IsAvailable(ctx context.Context, username string) (bool, error) {
 	u, err := url.JoinPath("https://github.com", username)
 	if err != nil {
 		return false, err
 	}
-	req, err := http.NewRequest("GET", u, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return false, err
 	}
