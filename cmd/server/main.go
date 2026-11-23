@@ -85,7 +85,11 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	go func() {
 		for _, checker := range checkers {
-			sem.Acquire(context.Background(), 1)
+			if !sem.TryAcquire(1) {
+				cancel()
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 			wg.Go(func() {
 				defer func() { sem.Release(1) }()
 				check(ctx, username, checker, resultCh)
