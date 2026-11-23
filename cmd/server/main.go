@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json/v2"
 	"fmt"
 	"log"
@@ -78,7 +79,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
 	for _, checker := range checkers {
-		wg.Go(func() { check(username, checker, resultCh) })
+		wg.Go(func() { check(context.TODO(), username, checker, resultCh) })
 	}
 	go func() {
 		wg.Wait()
@@ -105,15 +106,28 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func check(username string, checker Checker, resultCh chan<- Result) {
+func check(
+	ctx context.Context,
+	username string,
+	checker Checker,
+	resultCh chan<- Result,
+) {
 	res := Result{
 		Platform: checker.String(),
 		Valid:    checker.IsValid(username),
 	}
 	if !res.Valid {
-		resultCh <- res
+		select {
+		case <-ctx.Done():
+			return
+		case resultCh <- res:
+		}
 		return
 	}
 	res.Available, res.Err = checker.IsAvailable(username)
-	resultCh <- res
+	select {
+	case <-ctx.Done():
+		return
+	case resultCh <- res:
+	}
 }
