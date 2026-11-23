@@ -78,8 +78,10 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 	resultCh := make(chan Result)
 	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	for _, checker := range checkers {
-		wg.Go(func() { check(context.TODO(), username, checker, resultCh) })
+		wg.Go(func() { check(ctx, username, checker, resultCh) })
 	}
 	go func() {
 		wg.Wait()
@@ -88,6 +90,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	var results []Result
 	for res := range resultCh {
 		if res.Err != nil {
+			cancel()
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
