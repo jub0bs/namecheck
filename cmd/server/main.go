@@ -58,6 +58,10 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type token struct{}
+
+var sem = make(chan token, 16)
+
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
@@ -78,10 +82,14 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	for _, checker := range checkers {
-		wg.Go(func() { check(ctx, username, checker, resultCh) })
-	}
 	go func() {
+		for _, checker := range checkers {
+			sem <- token{}
+			wg.Go(func() {
+				defer func() { <-sem }()
+				check(ctx, username, checker, resultCh)
+			})
+		}
 		wg.Wait()
 		close(resultCh)
 	}()
@@ -120,7 +128,6 @@ func check(
 	if !res.Valid {
 		select {
 		case <-ctx.Done():
-			fmt.Println("canceled")
 			return
 		case resultCh <- res:
 		}
@@ -129,7 +136,6 @@ func check(
 	res.Available, res.Err = checker.IsAvailable(ctx, username)
 	select {
 	case <-ctx.Done():
-		fmt.Println("canceled")
 		return
 	case resultCh <- res:
 	}
