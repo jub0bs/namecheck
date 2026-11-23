@@ -61,7 +61,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 
 type token struct{}
 
-var sem = semaphore.NewWeighted(16)
+var sem = semaphore.NewWeighted(32)
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
